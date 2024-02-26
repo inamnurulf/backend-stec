@@ -1,39 +1,61 @@
+const db = require("../helper/db");
+
 exports.addTodo = async (req, res, next) => {
   try {
-    res.status(201).json({ message: "AddTodo successfully" });
+    const { title, description, completed, accountId } = req.body;
+    const todo = await db.toDo.create({
+      data: {
+        title,
+        description,
+        completed,
+        account: { connect: { id: accountId } },
+      },
+    });
+    res.status(201).json({ message: 'AddTodo successfully', todo });
   } catch (err) {
-    res.status(500).json({ error: err });
+    res.status(500).json({ error: err.message });
   }
 };
 
 exports.getAllTodo = async (req, res, next) => {
   try {
-    res.status(200).json({ message: "GetAllTodo successful" });
+    const todos = await db.toDo.findMany();
+    res.status(200).json({ message: 'GetAllTodo successful', todos });
   } catch (err) {
-    res.status(500).json({ error: err });
+    res.status(500).json({ error: err.message });
   }
 };
 
 exports.getTodoById = async (req, res, next) => {
   try {
-    res.status(200).json({ message: "GetTodoById successful" });
+    const { id } = req.params;
+    const todo = await db.toDo.findUnique({ where: { id } });
+    res.status(200).json({ message: 'GetTodoById successful', todo });
   } catch (err) {
-    res.status(500).json({ error: err });
+    res.status(500).json({ error: err.message });
   }
 };
 
 exports.updateTodo = async (req, res, next) => {
   try {
-    res.status(200).json({ message: "UpdateTodo successful" });
+    const { id } = req.params;
+    const { title, description, completed } = req.body;
+    const updatedTodo = await db.toDo.update({
+      where: { id },
+      data: { title, description, completed },
+    });
+    res.status(200).json({ message: 'UpdateTodo successful', updatedTodo });
   } catch (err) {
-    res.status(500).json({ error: err });
+    res.status(500).json({ error: err.message });
   }
 };
 
 exports.deleteTodo = async (req, res, next) => {
   try {
-    res.status(200).json({ message: "DeleteTodo successful" });
+    const { id } = req.params;
+    await db.toDo.delete({ where: { id } });
+    res.status(200).json({ message: 'DeleteTodo successful' });
   } catch (err) {
-    res.status(500).json({ error: err });
+    res.status(500).json({ error: err.message });
   }
 };

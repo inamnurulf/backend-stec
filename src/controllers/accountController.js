@@ -149,7 +149,7 @@ exports.login = async (req, res, next) => {
 
     if (account && (await bcrypt.compare(password, account.password))) {
       const token = generateToken({
-        _id: account.id,
+        id: account.id,
         username: account.username,
         email: account.email,
         role: account.role,

@@ -1,9 +1,9 @@
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const saltRounds = parseInt(process.env.SALTROUNDS, 10);
-const generateOTP = require("../helper/generateOTP")
-const generateToken = require("../helper/generateToken")
-const db = require("../helper/db")
+const generateOTP = require("../helper/generateOTP");
+const generateToken = require("../helper/generateToken");
+const db = require("../helper/db");
 
 let transporter = nodemailer.createTransport({
   service: "gmail",
@@ -13,13 +13,14 @@ let transporter = nodemailer.createTransport({
   },
 });
 
-
 exports.signUp = async (req, res, next) => {
   try {
     const newAccount = req.body;
 
     if (!newAccount || Object.keys(newAccount).length === 0) {
-      return res.status(400).json({ error: 'Bad request. Request body is empty.' });
+      return res
+        .status(400)
+        .json({ error: "Bad request. Request body is empty." });
     }
 
     const existingAccount = await db.account.findFirst({
@@ -28,7 +29,8 @@ exports.signUp = async (req, res, next) => {
 
     if (existingAccount && existingAccount.isVerified) {
       const responseAccount = {
-        error: 'Account with the same email already exists and has been verified',
+        error:
+          "Account with the same email already exists and has been verified",
         needVerify: false,
       };
 
@@ -37,7 +39,8 @@ exports.signUp = async (req, res, next) => {
 
     if (existingAccount && !existingAccount.isVerified) {
       const responseAccount = {
-        error: 'Account with the same email already exists and needs verification',
+        error:
+          "Account with the same email already exists and needs verification",
         needVerify: true,
       };
 
@@ -48,7 +51,7 @@ exports.signUp = async (req, res, next) => {
     const mailOptions = {
       from: `Stechoq Verification <${process.env.MAIL_USERNAME}>`,
       to: newAccount.email,
-      subject: 'Stechoq Account Verification',
+      subject: "Stechoq Account Verification",
       html: `
         <main>
           <style>
@@ -65,7 +68,9 @@ exports.signUp = async (req, res, next) => {
       await transporter.sendMail(mailOptions);
     } catch (err) {
       console.error(err);
-      return res.status(500).json({ error: 'Error occurred while sending email', code: err.code });
+      return res
+        .status(500)
+        .json({ error: "Error occurred while sending email", code: err.code });
     }
 
     const hashedPassword = await bcrypt.hash(newAccount.password, 10);
@@ -74,11 +79,13 @@ exports.signUp = async (req, res, next) => {
       data: {
         ...newAccount,
         password: hashedPassword,
-        otp : OTPverif
+        otp: OTPverif,
       },
     });
 
-    res.status(201).json({ message: 'User created successfully', createdAccount });
+    res
+      .status(201)
+      .json({ message: "User created successfully", createdAccount });
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: err.message });
@@ -120,7 +127,6 @@ exports.verify = async (req, res, next) => {
   }
 };
 
-
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -150,7 +156,7 @@ exports.login = async (req, res, next) => {
       });
 
       return res
-        .cookie('Authorization', token, {
+        .cookie("Authorization", token, {
           withCredentials: true,
           httpOnly: true,
         })
@@ -159,7 +165,9 @@ exports.login = async (req, res, next) => {
           role: account.role,
         });
     } else {
-      return res.status(401).json({ message: "Wrong password", wrongPassword: true });
+      return res
+        .status(401)
+        .json({ message: "Wrong password", wrongPassword: true });
     }
   } catch (error) {
     console.error(error);
@@ -169,7 +177,8 @@ exports.login = async (req, res, next) => {
 
 exports.logout = async (req, res, next) => {
   try {
-    res.status(200).json({ message: "Logout successful" });
+    res.clearCookie("Authorization");
+    res.status(200).json({ message: "You are now logged out." });
   } catch (err) {
     res.status(500).json({ error: err });
   }

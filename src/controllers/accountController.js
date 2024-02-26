@@ -85,6 +85,42 @@ exports.signUp = async (req, res, next) => {
   }
 };
 
+exports.verify = async (req, res, next) => {
+  try {
+    const { email, verifyOTP } = req.body;
+    const accountToVerify = await db.account.findFirst({
+      where: { email },
+    });
+
+    if (!accountToVerify) {
+      return res.status(404).json({
+        message: "Please Sign Up before verifying your account",
+      });
+    }
+
+    if (accountToVerify.isVerified === true) {
+      return res
+        .status(401)
+        .json({ error: "Account has been verified", needLogin: true });
+    }
+
+    if (verifyOTP == accountToVerify.otp) {
+      await db.account.update({
+        where: { id: accountToVerify.id },
+        data: { isVerified: true },
+      });
+
+      return res.status(200).json({ message: "Account has been verified." });
+    } else {
+      return res.status(401).json({ error: "OTP is incorrect." });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server Error!" });
+  }
+};
+
+
 exports.login = async (req, res, next) => {
   try {
     res.status(200).json({ message: "Login successful"});

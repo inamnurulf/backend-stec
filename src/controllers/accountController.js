@@ -1,8 +1,8 @@
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const saltRounds = parseInt(process.env.SALTROUNDS, 10);
-const jwt = require("jsonwebtoken");
 const generateOTP = require("../helper/generateOTP")
+const generateToken = require("../helper/generateToken")
 const db = require("../helper/db")
 
 let transporter = nodemailer.createTransport({
@@ -123,9 +123,47 @@ exports.verify = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
   try {
-    res.status(200).json({ message: "Login successful"});
-  } catch (err) {
-    res.status(500).json({ error: err });
+    const { email, password } = req.body;
+    const account = await db.account.findFirst({ where: { email } });
+
+    if (!account) {
+      return res.status(404).json({
+        message: "Please Sign Up",
+        needSignUp: true,
+      });
+    }
+
+    if (account.isVerified !== true) {
+      return res.status(401).json({
+        email: account.email,
+        error: "Unverified",
+        needVerify: true,
+      });
+    }
+
+    if (account && (await bcrypt.compare(password, account.password))) {
+      const token = generateToken({
+        _id: account.id,
+        username: account.username,
+        email: account.email,
+        role: account.role,
+      });
+
+      return res
+        .cookie('Authorization', token, {
+          withCredentials: true,
+          httpOnly: true,
+        })
+        .json({
+          email: account.email,
+          role: account.role,
+        });
+    } else {
+      return res.status(401).json({ message: "Wrong password", wrongPassword: true });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: error.message });
   }
 };
 

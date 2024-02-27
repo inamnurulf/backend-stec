@@ -194,3 +194,12 @@ exports.deleteUser = async (req, res, next) => {
     console.log(err)
   }
 }
+
+exports.getAllUser = async (req, res, next) => {
+  try {
+    const users = await db.account.findMany();;
+    res.status(200).json({ message: 'GetAllUser successful', users });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}

@@ -13,7 +13,6 @@ const isLoggedIn = async (req, res, next) => {
         return res.status(401).json({ error: "Unauthorized" });
       } else {
         req.user = decoded;
-        console.log(JSON.stringify(req.user.payload));
         next();
       }
     });

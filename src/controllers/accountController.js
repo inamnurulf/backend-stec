@@ -183,3 +183,14 @@ exports.logout = async (req, res, next) => {
     res.status(500).json({ error: err });
   }
 };
+
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await db.account.delete({ where: { id } });
+    res.status(200).json({ message: 'Delete User successful' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log(err)
+  }
+}

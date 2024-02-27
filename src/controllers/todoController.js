@@ -1,8 +1,11 @@
+const { decode } = require("jsonwebtoken");
 const db = require("../helper/db");
+const { isLoggedIn } = require("../middlewares/authorization");
 
 exports.addTodo = async (req, res, next) => {
   try {
-    const { title, description, completed, accountId } = req.body;
+    const { title, description, completed } = req.body;
+    const accountId = req.user.payload.id;
     const todo = await db.toDo.create({
       data: {
         title,
@@ -19,7 +22,7 @@ exports.addTodo = async (req, res, next) => {
 
 exports.getAllTodo = async (req, res, next) => {
   try {
-    const todos = await db.toDo.findMany();
+    const todos = await db.toDo.findMany();;
     res.status(200).json({ message: 'GetAllTodo successful', todos });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -30,6 +33,18 @@ exports.getTodoById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const todo = await db.toDo.findUnique({ where: { id } });
+    res.status(200).json({ message: 'GetTodoById successful', todo });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.getTodoByUserId = async (req, res, next) => {
+  try {
+    const user_id = req.user.payload.id;
+    const todo = await db.toDo.findMany({
+      where: { accountId: user_id },
+    });
     res.status(200).json({ message: 'GetTodoById successful', todo });
   } catch (err) {
     res.status(500).json({ error: err.message });

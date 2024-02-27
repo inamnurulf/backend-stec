@@ -83,14 +83,25 @@ exports.signUp = async (req, res, next) => {
       },
     });
 
-    res
-      .status(201)
-      .json({ message: "User created successfully", newAccount });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: err.message });
-  }
-};
+    const responseAccount = {
+      message: "User created successfully",
+      newAccount: {
+        id: createdAccount.id,
+        username: createdAccount.username,
+        email: createdAccount.email,
+        isVerified: createdAccount.isVerified,
+        createdAt: createdAccount.createdAt,
+      },
+    };
+
+      res.
+          status(201)
+          .json(responseAccount);
+        } catch (err) {
+          console.log(err);
+          res.status(500).json({ error: err.message });
+        }
+  };
 
 exports.verify = async (req, res, next) => {
   try {

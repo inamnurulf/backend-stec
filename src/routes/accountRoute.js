@@ -11,4 +11,8 @@ router.post("/log-in", accountController.login);
 
 router.get("/log-out", accountController.logout);
 
+router.delete("/delete-user/:id", accountController.deleteUser);
+
+router.get("/get-all-users", accountController.getAllUser);
+
 module.exports = router;
